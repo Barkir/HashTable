@@ -1,0 +1,46 @@
+CC ?= g++
+TARGET = run
+
+OFLAG ?= -O2
+
+CFLAGS_RELEASE = $(OFLAG) -Iinclude -Wall -pedantic -pedantic-errors -g3 -std=gnu++20 -DNDEBUG $(shell sdl2-config --cflags)
+CFLAGS_DEBUG = $(OFLAG) -Iinclude -Wall -pedantic -pedantic-errors -g3 -std=gnu++20 -fsanitize=address $(shell sdl2-config --cflags)
+LDFLAGS=
+DEPFLAGS = -MMD -MP
+
+SRC_DIR = src
+INCLUDE_DIR = include
+BIN_DIR = bin
+
+SRCS := $(wildcard $(SRC_DIR)/*.cpp)
+OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(BIN_DIR)/%.o,$(SRCS))
+DEPS :=	$(OBJS:.o=.d)
+
+all: release
+
+ifeq ($(MAKECMDGOALS), debug)
+	CFLAGS = $(CFLAGS_DEBUG)
+	LDFLAGS += -fsanitize=address
+else ifeq ($(MAKECMDGOALS), release)
+	CFLAGS = $(CFLAGS_RELEASE)
+endif
+
+$(BIN_DIR)/%.o: $(SRC_DIR)/%.cpp
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+-include $(DEPS)
+
+debug: CFLAGS = $(CFLAGS_DEBUG)
+debug: LDFLAGS += -fsanitize=address
+debug: $(TARGET)
+
+release: CFLAGS = $(CFLAGS_RELEASE)
+release: $(TARGET)
+
+clean:
+	rm -f $(OBJS) $(DEPS) $(TARGET)
+
+.PHONY: all debug release clean
