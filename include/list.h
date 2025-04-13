@@ -1,19 +1,18 @@
 #ifndef LIST_H
 #define LIST_H
 
+
+typedef int64_t (*CompareFunc) (const void *, const void *);
+
 struct List
 {
     char * elem;
     List * nxt;
+    CompareFunc cmp;
 };
 
-enum ListErrros
-{
-    LST_SUCCESS,
-    LST_MEMALLOC_ERROR,
-}
-
-int ListInsert(List * lst, char * str);
+int ListInsert(List * lst, const char * str);
 int ListCtor(List * lst);
+int64_t ListCompare(const void * el1, const void * el2);
 
 #endif

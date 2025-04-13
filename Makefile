@@ -4,7 +4,7 @@ TARGET = run
 OFLAG ?= -O2
 
 CFLAGS_RELEASE = $(OFLAG) -Iinclude -Wall -pedantic -pedantic-errors -g3 -std=gnu++20 -DNDEBUG $(shell sdl2-config --cflags)
-CFLAGS_DEBUG = $(OFLAG) -Iinclude -Wall -pedantic -pedantic-errors -g3 -std=gnu++20 -fsanitize=address $(shell sdl2-config --cflags)
+CFLAGS_DEBUG = -O0 -Iinclude -Wall -pedantic -pedantic-errors -g3 -std=gnu++20 -fsanitize=address $(shell sdl2-config --cflags)
 LDFLAGS=
 DEPFLAGS = -MMD -MP
 
