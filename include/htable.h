@@ -16,8 +16,9 @@ struct Htable
     InsertFunc ifunc;
 };
 
-int HashTableInit(Htable ** tab, size_t bins, HashFunc hfunc, InsertFunc ifunc);
-int HashTableInsert(Htable * tab, const char * string);
+int HtableInit(Htable ** tab, size_t bins, HashFunc hfunc, InsertFunc ifunc);
+int HtableDestroy(Htable * tab);
+int HtableInsert(Htable * tab, const char * string);
 int HtableDump(Htable * tab);
 int64_t HashFunction(const void * elem, size_t size);
 int64_t ListInsertStud(void * lst, const void * elem);

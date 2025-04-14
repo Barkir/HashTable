@@ -6,7 +6,7 @@
 #include "htable.h"
 #include "errors.h"
 
-int HashTableInit(Htable ** tab, size_t bins, HashFunc hfunc, InsertFunc ifunc)
+int HtableInit(Htable ** tab, size_t bins, HashFunc hfunc, InsertFunc ifunc)
 {
     *tab = (Htable*) calloc(1, sizeof(Htable));
     if (!tab) return ParseHtableError(HTABLE_MEMALLOC_ERROR);
@@ -23,7 +23,26 @@ int HashTableInit(Htable ** tab, size_t bins, HashFunc hfunc, InsertFunc ifunc)
     return HTABLE_SUCCESS;
 }
 
-int HashTableInsert(Htable * tab, const char * string)
+int HtableDestroy(Htable * tab)
+{
+    for (int i = 0; i < tab->bins; i++)
+    {
+        List * lst = tab->table[i];
+        while (lst)
+        {
+            List * e = lst;
+            lst = lst->nxt;
+            free(e->elem);
+            free(e);
+        }
+    }
+
+    free(tab->table);
+    free(tab);
+    return HTABLE_SUCCESS;
+}
+
+int HtableInsert(Htable * tab, const char * string)
 {
 
 
@@ -53,13 +72,11 @@ int64_t ListInsertStud(void * lst, const void * elem)
 
 int64_t HashFunction(const void * elem, size_t size)
 {
-    int64_t hash = 0x3de5788a2dae7e9;
+    int64_t hash = 5381;
     const char * str = (const char *) elem;
     for (int i = 0; i < size; i++)
     {
-        hash = (hash >> 25) | (hash << 39);
-        hash = (str[i] * 0xa5a5013fe20a5a83) ^ hash;
-        hash = (hash >> 39) | (hash << 25);
+        hash = ((hash << 5) + hash) + str[i];
     }
 
     return hash;

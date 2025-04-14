@@ -31,7 +31,10 @@ index = hash % bins |
 ```
 
 ### Better hash == Random hash.
-Your data should be kept smoothly to keep an optimal [load factor](#load-factor)
+Your data should be kept smoothly to keep an optimal [load factor](#load-factor) of 1.5 but we are going to keep it **15** for better optimization.
+
+
+Keeping load factor as low as possible reduces **linear search** in bins, that's why it makes hash tables work faster
 
 #### Load-factor
 
@@ -45,6 +48,15 @@ For parsing text we will use python script ```bookparser.py``` that generates us
 
 This allows us to load our strings as __m128 variables and use intrinsic functions for string comparsion.
 It boosts our performance a lot, because we can compare 16 bits in one tact.
+
+
+
+The book we are going to parse is ```HOLY BIBLE!!!```
+---
+
+Hope my optimizations will work faster thaen ```-O3``` with the help of God
+
+
 
 
 
