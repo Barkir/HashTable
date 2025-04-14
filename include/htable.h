@@ -17,6 +17,7 @@ struct Htable
 };
 
 int HtableInit(Htable ** tab, size_t bins, HashFunc hfunc, InsertFunc ifunc);
+int HtableFind(Htable * tab, const char * string, char *result);
 int HtableDestroy(Htable * tab);
 int HtableInsert(Htable * tab, const char * string);
 int HtableDump(Htable * tab);

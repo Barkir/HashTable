@@ -1,3 +1,5 @@
 run
 bin
 *.dmp
+*.lib
+

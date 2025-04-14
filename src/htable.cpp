@@ -62,6 +62,15 @@ int HtableInsert(Htable * tab, const char * string)
     return HTABLE_SUCCESS;
 }
 
+int HtableFind(Htable * tab, const char * string, char *result)
+{
+    int bin = tab->hfunc(string, strlen(string)) % tab->bins;
+    for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
+        if (!strcmp(string, lst->elem)) return HTABLE_FOUND;
+
+    return HTABLE_NOT_FOUND;
+}
+
 int64_t ListInsertStud(void * lst, const void * elem)
 {
     if (!ListInsert((List*) lst, (const char*) elem))

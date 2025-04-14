@@ -1,5 +1,12 @@
 # Hash Table Research
 
+  | OS | Hardware |
+  |------|------|
+  | Ubuntu 24.10 | AMD Ryzen 7 6800H with Radeon Graphics            3.20 GHz |
+  | DESKTOP-JTSUO0I       | 16 GB RAM                                                  |
+  | Ubuntu clang version 19.1.1 (1ubuntu1) |
+  | gcc (Ubuntu 14.2.0-4ubuntu2) 14.2.0    |
+
 ## What we need to do?
 1. Write your own implementation of hash table
 2. Analyze it's speed using ```perf, valgrind, hotspot```
@@ -51,10 +58,34 @@ It boosts our performance a lot, because we can compare 16 bits in one tact.
 
 
 
-The book we are going to parse is ```HOLY BIBLE!!!```
+The book we are going to parse is ```HARRY POTTER!!!```
 ---
 
-Hope my optimizations will work faster thaen ```-O3``` with the help of God
+Hope my optimizations will work faster than ```-O3``` with the help of Magic!
+
+
+Here's an example of parsed text
+```
+...
+0000000Sorcerers
+00000000000Stone
+000000000CHAPTER
+0000000000000ONE
+0000000000000THE
+0000000000000BOY
+0000000000000WHO
+00000000000LIVED
+00000000000000Mr
+...
+```
+
+## Loading Harry Potter into hash table
+| Bins | Load Factor | Words Loaded |
+|------|-------------|--------------|
+ 128| 15.6| 2000
+
+
+
 
 
 
