@@ -16,24 +16,29 @@ int main(void)
         return ParseHtableError(HTABLE_INIT_ERROR);
 
 
-    char ** lines = NULL;
-    File2Lines(&lines, "parsed.lib");
+    char ** harry = NULL;
+    char ** bible = NULL;
+
+    File2Lines(&harry, "info/parsed.lib");
+    File2Lines(&bible, "info/parsed.bible");
 
     for (int i = 0; i < NUM_WORDS; i++)
-        HtableInsert(tab, lines[i]);
+    {
+        HtableInsert(tab, harry[i]);
+    }
 
     char * found = NULL;
-    for (int j = 0; j < 100; j++)
+    for (int j = 0; j < 1000; j++)
     {
-        for (int i = 0; i < NUM_WORDS; i++)
+        for (int i = 0; i < NUM_WORDS * 10; i++)
         {
-            if (HtableFind(tab, lines[i], found) == HTABLE_FOUND)
+            if (HtableFind(tab, bible[i], found) == HTABLE_FOUND)
             {
-                LOGGER("FOUND WORD %s", lines[i]);
+                // LOGGER("FOUND WORD %s", bible[i]);
             }
             else
             {
-                LOGGER("NOT FOUND WORD %s", lines[i]);
+                // LOGGER("NOT FOUND WORD %s", bible[i]);
             }
 
         }

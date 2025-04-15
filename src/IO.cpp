@@ -26,7 +26,7 @@ int File2Lines(char *** buf, const char * filename)
     }
     size_t fsize = stats.st_size;
 
-    *buf = (char**) calloc(fsize + 1, sizeof(char));
+    *buf = (char**) calloc(2 * fsize + 1, sizeof(char));
     if (!buf)
     {
         perror("book allocation");
@@ -42,12 +42,14 @@ int File2Lines(char *** buf, const char * filename)
         return EXIT_FAILURE;
     }
 
-    char line[BUF_LEN + 2] = "";
+    char line[BUF_LEN + 1] = "";
     int count = 0;
-    while (fgets(line, BUF_LEN + 2, fp))
+    while (fgets(line, BUF_LEN + 1, fp))
     {
         line[BUF_LEN] = 0;
-        (*buf)[count++] = strdup(line);
+        *((*buf) + count) = strdup(line);
+        count++;
+
     }
 
     fclose(fp);

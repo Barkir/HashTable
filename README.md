@@ -48,13 +48,28 @@ Keeping load factor as low as possible reduces **linear search** in bins, that's
 ```python
 load_factor = sum([len(list) for list in hash_table]) / bins
 ```
+#### Hash-function
+- Using djb2 hash function (fast & easy to write)
+- In the next iterations we will optimize this spot and use SIMD hash functions
+```c
+int64_t HashFunction(const void * elem, size_t size)
+{
+    int64_t hash = 5381;
+    const char * str = (const char *) elem;
+    for (int i = 0; i < size; i++)
+    {
+        hash = ((hash << 5) + hash) + str[i];
+    }
 
+    return hash;
+}
+```
 
 ## Parsing text
-For parsing text we will use python script ```bookparser.py``` that generates us 16-bit aligned text.
+For parsing text we will use python script ```bookparser.py``` that generates us a word-list file, where you can choose its alignment.
 
-This allows us to load our strings as __m128 variables and use intrinsic functions for string comparsion.
-It boosts our performance a lot, because we can compare 16 bits in one tact.
+This allows us to load our strings as __m128 or _m256 variables and use intrinsic functions for string comparsion.
+It will boost our perfomance.
 
 
 
@@ -63,26 +78,76 @@ The book we are going to parse is ```HARRY POTTER!!!```
 
 Hope my optimizations will work faster than ```-O3``` with the help of Magic!
 
-
-Here's an example of parsed text
+We are going to parse the text with several methods.
+The first method is default
 ```
 ...
-0000000Sorcerers
-00000000000Stone
-000000000CHAPTER
-0000000000000ONE
-0000000000000THE
-0000000000000BOY
-0000000000000WHO
-00000000000LIVED
-00000000000000Mr
+Harry
+Potter
+and
+the
+Sorcerers
+Stone
+CHAPTER
+ONE
+THE
+BOY
+WHO
+LIVED
+Mr
 ...
 ```
 
-## Loading Harry Potter into hash table
-| Bins | Load Factor | Words Loaded |
-|------|-------------|--------------|
- 128| 15.6| 2000
+Loading Parameters into our table
+| Bins | Load Factor | Words Loaded | Words Searched |
+|------|-------------|--------------|----------------|
+ 128| 15.6| 2000 | 20000
+
+```
+ <<<LOG FILE OF HASH TABLE>>>
+Load factor = 15.625000
+[BIN 0]
+----------------------------------
+	 did
+	 hed
+	 hed
+	 Potters
+	 hed
+	 upset
+	 upset
+	 hed
+	 upset
+	 Potters
+	 hed
+	 did
+	 Potters
+	 Potters
+	 Potters
+	 Potters
+	 did
+----------------------------------
+...
+```
+We will use **perf** and **hotspot** for profiling our hash table.
+
+Use these commands for profiling
+```
+sudo perf record ./run
+sudo hotspot
+```
+
+| Compiler | Flags | Time, s | FlameGraph |
+|----------|-------|------------|---------|
+| gcc | -O0 |2.673 | ![image](readme/hotspot_gcc_O0.png) |
+| gcc | -O1 |2.239 | ![image](readme/hotspot_gcc_O1.png) |
+| gcc | -O2 |2.238 | ![image](readme/hotspot_gcc_O2.png) |
+| gcc | -O3 |2.225 | ![image](readme/hotspot_gcc_O3.png) |
+
+As we see, the hottest function here is ```_strcmp_avx2```
+
+The second hottest function is ```HtableFind```
+
+The third is ```HashFunction```
 
 
 

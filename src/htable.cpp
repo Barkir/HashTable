@@ -44,10 +44,7 @@ int HtableDestroy(Htable * tab)
 
 int HtableInsert(Htable * tab, const char * string)
 {
-
-
     size_t ind = tab->hfunc(string, strlen(string)) % tab->bins;
-
     for (List * lst = tab->table[ind]; lst; lst=lst->nxt)
     {
 
@@ -93,7 +90,7 @@ int64_t HashFunction(const void * elem, size_t size)
 
 int HtableDump(Htable * tab)
 {
-    FILE * file = fopen("log.dmp", "w+");
+    FILE * file = fopen("info/log.dmp", "w+");
     if (!file) return  HTABLE_FILE_OPEN_ERROR;
     fprintf(file, "<<<LOG FILE OF HASH TABLE>>>\n");
 

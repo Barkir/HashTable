@@ -2,4 +2,6 @@ run
 bin
 *.dmp
 *.lib
+*.data
+*.old
 
