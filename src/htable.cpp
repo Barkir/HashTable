@@ -2,9 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <xmmintrin.h>
+#include <x86intrin.h>
+#include <nmmintrin.h>
+
 #include "list.h"
 #include "htable.h"
 #include "errors.h"
+#include "IO.h"
 
 int HtableInit(Htable ** tab, size_t bins, HashFunc hfunc, InsertFunc ifunc)
 {
@@ -59,12 +64,45 @@ int HtableInsert(Htable * tab, const char * string)
     return HTABLE_SUCCESS;
 }
 
-int HtableFind(Htable * tab, const char * string, char *result)
+int HtableAlignedInsert(int alignment, Htable * tab, const char * string)
+{
+    LOGGER("%s", string);
+    size_t ind = tab->hfunc(string, strlen(string)) % tab->bins;
+    for (List * lst = tab->table[ind]; lst; lst=lst->nxt)
+    {
+
+    }
+
+    List * n = (List*) malloc(sizeof(List));
+    n->elem16 = _mm_load_si128((__m128i*) string);
+    n->nxt = tab->table[ind];
+    tab->table[ind] = n;
+
+
+    return HTABLE_SUCCESS;
+}
+
+int HtableFind(Htable * tab, const char * string, char * result)
 {
     int bin = tab->hfunc(string, strlen(string)) % tab->bins;
+    // int bin = tab->hfunc(string, 16) % tab->bins;
+
     for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
         if (!strcmp(string, lst->elem)) return HTABLE_FOUND;
 
+    return HTABLE_NOT_FOUND;
+}
+
+int HtableAlignedFind(int alignment, Htable * tab, const char * string, char * result)
+{
+    __m128i barelystr = _mm_load_si128((__m128i*) string);
+    int bin = tab->hfunc(string, alignment - 1) % tab->bins;
+    for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
+    {
+        __m128i cmpres = _mm_cmpistrm(barelystr, lst->elem16, _SIDD_UBYTE_OPS);
+        int cmpintres = _mm_testz_si128 (cmpres, cmpres);
+        if (!cmpintres) return HTABLE_FOUND;
+    }
     return HTABLE_NOT_FOUND;
 }
 

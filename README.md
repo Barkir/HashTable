@@ -134,21 +134,32 @@ Use these commands for profiling
 ```
 sudo perf record ./run
 sudo hotspot
+hyperfine --runs 1000 './run'
 ```
 
-| Compiler | Flags | Time, s | FlameGraph |
+Before using ```hyperfine --runs``` we use ```hyperfine --warmup```
+
+It is needed to load frequently used blocks of memory to cache, this way we can make the experiment more repeatable,
+because it won't be dependent of cache-misses.
+
+| Compiler | Flags | Time|FlameGraph |
 |----------|-------|------------|---------|
-| gcc | -O0 |2.673 | ![image](readme/hotspot_gcc_O0.png) |
-| gcc | -O1 |2.239 | ![image](readme/hotspot_gcc_O1.png) |
-| gcc | -O2 |2.238 | ![image](readme/hotspot_gcc_O2.png) |
-| gcc | -O3 |2.225 | ![image](readme/hotspot_gcc_O3.png) |
+| gcc | -O0|132.4 ms ±  36.1 ms|![image](readme/hotspot_gcc_O0.png) |
+| gcc | -O1 |123.2 ms ±  33.4 ms   |![image](readme/hotspot_gcc_O1.png) |
+| gcc | -O2 |114.5 ms ±   2.1 ms  |![image](readme/hotspot_gcc_O2.png) |
+| gcc | -O3 | 125.1 ms ±  36.3 ms  |![image](readme/hotspot_gcc_O3.png) |
+
+
 
 As we see, the hottest function here is ```_strcmp_avx2```
 
-The second hottest function is ```HtableFind```
+The second hottest function is ```HtableFind``` and ```malloc```
 
 The third is ```HashFunction```
 
+### First enemy - strcmp
+
+Our goal is to change this function to its intrinsic twin - __mm_cmpistrm
 
 
 

@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <xmmintrin.h>
+#include <x86intrin.h>
+#include <nmmintrin.h>
+#include <immintrin.h>
+
 #include "errors.h"
 #include "list.h"
 #include "htable.h"
