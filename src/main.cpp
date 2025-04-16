@@ -59,9 +59,8 @@ int SIMDVersion(void)
     }
 
 
-    HtableDump(tab);
-
-    HtableDestroy(tab);
+    // HtableDump(tab);
+    // HtableDestroy(tab);
     return 0;
 }
 

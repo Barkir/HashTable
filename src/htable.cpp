@@ -49,6 +49,7 @@ int HtableDestroy(Htable * tab)
 
 int HtableInsert(Htable * tab, const char * string)
 {
+    // LOGGER("%s", string);
     size_t ind = tab->hfunc(string, strlen(string)) % tab->bins;
     for (List * lst = tab->table[ind]; lst; lst=lst->nxt)
     {
@@ -66,8 +67,8 @@ int HtableInsert(Htable * tab, const char * string)
 
 int HtableAlignedInsert(int alignment, Htable * tab, const char * string)
 {
-    LOGGER("%s", string);
-    size_t ind = tab->hfunc(string, strlen(string)) % tab->bins;
+    // LOGGER("%s, %d", string, strlen(string));
+    size_t ind = tab->hfunc(string, alignment) % tab->bins;
     for (List * lst = tab->table[ind]; lst; lst=lst->nxt)
     {
 
@@ -75,6 +76,7 @@ int HtableAlignedInsert(int alignment, Htable * tab, const char * string)
 
     List * n = (List*) malloc(sizeof(List));
     n->elem16 = _mm_load_si128((__m128i*) string);
+    n->elem = strdup(string);
     n->nxt = tab->table[ind];
     tab->table[ind] = n;
 
@@ -96,12 +98,14 @@ int HtableFind(Htable * tab, const char * string, char * result)
 int HtableAlignedFind(int alignment, Htable * tab, const char * string, char * result)
 {
     __m128i barelystr = _mm_load_si128((__m128i*) string);
-    int bin = tab->hfunc(string, alignment - 1) % tab->bins;
+
+    int bin = tab->hfunc(string, alignment) % tab->bins;
     for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
     {
-        __m128i cmpres = _mm_cmpistrm(barelystr, lst->elem16, _SIDD_UBYTE_OPS);
-        int cmpintres = _mm_testz_si128 (cmpres, cmpres);
-        if (!cmpintres) return HTABLE_FOUND;
+        __m128i cmpres = _mm_cmpeq_epi8(barelystr, lst->elem16);
+        int mask = _mm_movemask_epi8(cmpres);
+        // LOGGER("%s vs %s %d", string, lst->elem, mask);
+        if (mask==0xFFFF) return HTABLE_FOUND;
     }
     return HTABLE_NOT_FOUND;
 }
@@ -139,7 +143,7 @@ int HtableDump(Htable * tab)
         fprintf(file, "[BIN %d]", bins);
         fprintf(file, "----------------------------------\n");
         for (List * lst = tab->table[bins]; lst; lst=lst->nxt)
-            fprintf(file, "\t %s", lst->elem);
+        // if (lst->elem) fprintf(file, "\t %s", lst->elem);
         fprintf(file, "----------------------------------\n");
     }
 

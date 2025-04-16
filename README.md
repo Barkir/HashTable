@@ -144,10 +144,10 @@ because it won't be dependent of cache-misses.
 
 | Compiler | Flags | Time|FlameGraph |
 |----------|-------|------------|---------|
-| gcc | -O0|132.4 ms ±  36.1 ms|![image](readme/hotspot_gcc_O0.png) |
-| gcc | -O1 |123.2 ms ±  33.4 ms   |![image](readme/hotspot_gcc_O1.png) |
-| gcc | -O2 |114.5 ms ±   2.1 ms  |![image](readme/hotspot_gcc_O2.png) |
-| gcc | -O3 | 125.1 ms ±  36.3 ms  |![image](readme/hotspot_gcc_O3.png) |
+| gcc | -O0 |132.4 ms ±  36.1 ms	|![image](readme/hotspot_gcc_O0.png) |
+| gcc | -O1 |123.2 ms ±  33.4 ms  	|![image](readme/hotspot_gcc_O1.png) |
+| gcc | -O2 |114.5 ms ±   2.1 ms  	|![image](readme/hotspot_gcc_O2.png) |
+| gcc | -O3 |125.1 ms ±  36.3 ms	|![image](readme/hotspot_gcc_O3.png) |
 
 
 
@@ -159,13 +159,35 @@ The third is ```HashFunction```
 
 ### First enemy - strcmp
 
-Our goal is to change this function to its intrinsic twin - __mm_cmpistrm
+Our goal is to change this function to intrinsic byte comparsion function.
+We will use **_mm_cmpeq_epi8**. This function returns a mask and if all the bytes are equal it equals 0xFFFF.
+
+For easier text parsing and mmeory-alignment we will change the mode in ```bookparser.py``` and set the 16 byte alignment for it.
+```
+The000000000000
+Holy000000000000
+Bible00000000000
+Berean0000000000
+Standard00000000
+Bible00000000000
+BSB0000000000000
+is00000000000000
+produced00000000
+in00000000000000
+cooperation00000
+with000000000000
+```
 
 
 
+| Compiler | Flags | Time| Boost (ref to prev version)| Boost (ref to prev fastest version)| FlameGraph |
+|----------|-------|-----|-------|------------|-------|
+| gcc | -O0	|118.6 ms ±   1.8 ms |+11.6%	|-3.5%	|![image](readme/hotspot_simd_gcc_O0.png) |
+| gcc | -O1 |99.2 ms ±   1.4 ms  |+24.1%  	|+15.4%	|![image](readme/hotspot_simd_gcc_O1.png) |
+| gcc | -O2 |99.5 ms ±   2.0 ms  |+15.1% 	|+15.1%	|![image](readme/hotspot_simd_gcc_O2.png) |
+| gcc | -O3 |99.5 ms ±   2.4 ms	 |+25.7% 	|+15.1%	|![image](readme/hotspot_simd_gcc_O3.png) |
 
 
-
-
-
+Judging by the flame-graph we see that strcmp disappearead from it.
+Now **nft_pcpu_tun_ctx** is on top. Still guessing what's that but it is something from Linux Kernel.
 

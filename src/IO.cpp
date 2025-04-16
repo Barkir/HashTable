@@ -59,10 +59,19 @@ int File2Lines(int a_flag, char *** buf, const char * filename)
     int count = 0;
     while (fgets(line, BUF_LEN + 1, fp) && count < NUM_WORDS * 300)
     {
-        // LOGGER("%s", line);
-        line[BUF_LEN] = 0;
-        *((*buf) + count) = strdup(line);
-        count++;
+        if (a_flag == IO_ALIGNED)
+        {
+            if (strlen(line) == 16)
+            {
+                *((*buf) + count) = strdup(line);
+                count++;
+            }
+        }
+        else
+        {
+            *((*buf) + count) = strdup(line);
+            count++;
+        }
 
     }
 
