@@ -1,4 +1,7 @@
 #include <stdlib.h>
+#include <cstdint>
+#include <nmmintrin.h>
+
 #include "crc32.h"
 
 static const unsigned int crc32_table[] =
@@ -68,6 +71,17 @@ static const unsigned int crc32_table[] =
   0xafb010b1, 0xab710d06, 0xa6322bdf, 0xa2f33668,
   0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
 };
+
+uint32_t icrc32(const char* string)
+{
+    uint32_t crc = 0;
+    crc = _mm_crc32_u64(crc, *((uint64_t*)string +  0));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)string +  1));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)string +  2));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)string +  3));
+
+    return crc;
+}
 
 unsigned int xcrc32 (const char *buf, int len, unsigned int init)
 {

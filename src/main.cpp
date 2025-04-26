@@ -41,6 +41,8 @@ int SIMDVersion(void)
     }
 
     char * found = NULL;
+    // for (int j = 0; j < 100; j++)
+    // {
     for (int i = 0; i < NUM_WORDS * 300; i++)
     {
         if (HtableOptFind(tab, bible[i], found) == HTABLE_FOUND)
@@ -52,6 +54,7 @@ int SIMDVersion(void)
             // LOGGER("NOT FOUND WORD %s", bible[i]);
         }
     }
+    // }
 
 
     HtableDump(tab);

@@ -37,7 +37,11 @@ int File2Lines(int a_flag, char *** buf, const char * filename)
     }
     size_t fsize = stats.st_size;
 
-    if (a_flag == IO_ALIGNED)           *buf = (char**) aligned_alloc(16, ALIGNED_SIZE);
+    if (a_flag == IO_ALIGNED)
+    {
+        *buf = (char**) aligned_alloc(BUF_LEN, 2 * fsize + (2 * fsize) % BUF_LEN);
+        memset(*buf, 0, 2 * fsize + (2 * fsize) % BUF_LEN);
+    }
     else if (a_flag == IO_DEFAULT)      *buf = (char**) calloc(2 * fsize + 1, sizeof(char));
 
     if (!buf)
@@ -61,9 +65,11 @@ int File2Lines(int a_flag, char *** buf, const char * filename)
     {
         if (a_flag == IO_ALIGNED)
         {
-            if (strlen(line) == BUF_LEN)
+            // if (strlen(line) == BUF_LEN)
             {
-                *((*buf) + count) = strdup(line);
+                *((*buf) + count) = (char*) aligned_alloc(BUF_LEN, BUF_LEN);
+                memset(*(*buf) + count, 0, BUF_LEN);
+                memcpy(*(*buf) + count, line, strlen(line) + 1);
                 count++;
             }
         }

@@ -1,7 +1,7 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define LOGGER(...) \

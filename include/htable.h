@@ -34,8 +34,6 @@ static inline int strcmp_asm(const char * el1, const char * el2)
 
     int mask = 0;
 
-    // fprintf(stderr, "%s %s\n", el1, el2);
-
     __asm__ inline (
     ".intel_syntax noprefix             \n\t"
     "xor eax, eax                       \n\t"
@@ -51,7 +49,6 @@ static inline int strcmp_asm(const char * el1, const char * el2)
 
     );
 
-    // fprintf(stderr, "mask = %d\n", mask);
     return mask;
 
 }

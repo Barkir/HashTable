@@ -199,6 +199,15 @@ strcmp_asm(char const*, char const*):
 
 This is how we write it using inline assembler
 
+1. We move a string by address %1 (which is in rdi register) to ymm0
+2. Then we use ```vptest``` instructuion which counts (~a & b) of ymm register and address and sets the carry flag to 1 if it equals zero (which is basically means registers are equal)
+3. ```setc``` is for setting the lowest byte of rax to the value of carry flag
+4. ```vzeroupper``` zeros hugher 128 bits of ymm
+
+```"+&r" (mask)``` - _'+'_ is for read&write mode, _'&'_ is a mark that this value is modified (prevents compiler from assigning the same register to input and output). _'r'_ - request for placing it in **general-purpose register**
+
+
+
 ```c
 static inline int strcmp_asm(const char * el1, const char * el2)
 {
@@ -233,3 +242,35 @@ static inline int strcmp_asm(const char * el1, const char * el2)
 
 ### Second enemy - hash function
 
+The second approach we will use is intrinsic functions.
+You won't believe it, but **crc32** has its intrinsic-implementation.
+
+
+#### This is called
+![image](readme/magic.gif)
+
+---
+
+This is a function for counting crc32 hash using intrinsic functions.
+
+
+```
+uint32_t icrc32(const char* string)
+{
+    uint32_t crc = 0;
+    crc = _mm_crc32_u64(crc, *((uint64_t*)string +  0));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)string +  1));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)string +  2));
+    crc = _mm_crc32_u64(crc, *((uint64_t*)string +  3));
+
+    return crc;
+}
+```
+
+| Previous time | Current time |Boost|
+|------|-----|------|
+ 145.7 ms ±  1.3 ms | 132.3 ms ± 1.8 ms | 10.1% |
+
+![alt text](readme/second.png)
+
+Now we see that strcmp is the hottest function again

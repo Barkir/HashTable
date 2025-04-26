@@ -17,12 +17,12 @@
 
 int HtableInit(Htable ** tab, size_t bins)
 {
-    *tab = (Htable*) calloc(1, sizeof(Htable));
+    *tab = (Htable*) calloc(BUF_LEN, sizeof(Htable));
     if (!tab) return ParseHtableError(HTABLE_MEMALLOC_ERROR);
 
     (*tab)->bins = bins;
 
-    (*tab)->table = (List**) calloc(bins, sizeof(List*));
+    (*tab)->table = (List**) calloc(BUF_LEN, bins * sizeof(List*));
     if (!(*tab)->table) return ParseHtableError(HTABLE_MEMALLOC_ERROR);
 
 
@@ -73,7 +73,7 @@ int HtableInsert(Htable * tab, const char * string)
 
 int HtableOptInsert(Htable * tab, const char * string)
 {
-    int bin = xcrc32(string, strlen(string), CRC32INIT) % tab->bins;
+    int bin = icrc32(string) % tab->bins;
     for (List * lst = tab->table[bin]; lst; lst=lst->nxt)
     {
 
@@ -85,7 +85,7 @@ int HtableOptInsert(Htable * tab, const char * string)
     n->elem = (char*) aligned_alloc(BUF_LEN, BUF_LEN);
     if (!n->elem) return HTABLE_MEMALLOC_ERROR;
 
-    memset(n->elem, 0, BUF_LEN);
+    memset(n->elem, 0, BUF_LEN + 1);
     memcpy(n->elem, string, strlen(string) + 1);
 
     n->nxt = tab->table[bin];
@@ -108,18 +108,18 @@ int HtableFind(Htable * tab, const char * string, char * result)
 
 int HtableOptFind(Htable * tab, const char * string, char * result)
 {
-    int bin = xcrc32(string, strlen(string), CRC32INIT) % tab->bins;
-
+    int bin = icrc32(string) % tab->bins;
     for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
     {
+        // LOGGER("%ld, %ld", (size_t) string % 32, (size_t) lst->elem % 32);
         if (strcmp_asm(string, lst->elem))
         {
-            LOGGER("FOUND WORD %s, bin = %d", string, bin);
+            // LOGGER("FOUND WORD %s, bin = %d", string, bin);
             return HTABLE_FOUND;
         }
     }
 
-    LOGGER("NOT FOUND WORD %s, bin = %d", string, bin);
+    // LOGGER("NOT FOUND WORD %s, bin = %d", string, bin);
 
     return HTABLE_NOT_FOUND;
 }
