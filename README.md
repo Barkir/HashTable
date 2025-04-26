@@ -128,66 +128,108 @@ Load factor = 15.625000
 ----------------------------------
 ...
 ```
-We will use **perf** and **hotspot** for profiling our hash table.
+We will use **perf**, **hotspot**  and **hyperfine** for profiling our hash table.
 
 Use these commands for profiling
 ```
+hyperfine --warmup 100 './run'
+hyperfine --runs 1000 './run'
+
 sudo perf record ./run
 sudo hotspot
-hyperfine --runs 1000 './run'
 ```
-
-Before using ```hyperfine --runs``` we use ```hyperfine --warmup```
 
 It is needed to load frequently used blocks of memory to cache, this way we can make the experiment more repeatable,
 because it won't be dependent of cache-misses.
 
-| Compiler | Flags | Time|FlameGraph |
-|----------|-------|------------|---------|
-| gcc | -O0 |132.4 ms ±  36.1 ms	|![image](readme/hotspot_gcc_O0.png) |
-| gcc | -O1 |123.2 ms ±  33.4 ms  	|![image](readme/hotspot_gcc_O1.png) |
-| gcc | -O2 |114.5 ms ±   2.1 ms  	|![image](readme/hotspot_gcc_O2.png) |
-| gcc | -O3 |125.1 ms ±  36.3 ms	|![image](readme/hotspot_gcc_O3.png) |
+| Compiler | Flags | Time|
+|----------|-------|------------|
+| g++ | -O0 |163.2 ms ±  1.3 ms 	|
+| g++ | -O1 |158.5 ms ±  0.9 ms  	|
+| g++ | -O2 |162.3 ms ±   2.9 ms  |
+| g++ | -O3 |161.5 ms ±  1.6 ms	|
+| g++ | PGO (profile guided optimization) | 170.4 ms ±  4.9 ms
+
+
+![alt text](readme/image-1.png)
 
 
 
 As we see, the hottest function here is ```_strcmp_avx2```
 
-The second hottest function is ```HtableFind``` and ```malloc```
-
-The third is ```HashFunction```
-
 ### First enemy - strcmp
 
-Our goal is to change this function to intrinsic byte comparsion function.
-We will use **_mm_cmpeq_epi8**. This function returns a mask and if all the bytes are equal it equals 0xFFFF.
+Let's write our own strcmp function using intrinsic functions.
 
-For easier text parsing and mmeory-alignment we will change the mode in ```bookparser.py``` and set the 16 byte alignment for it.
+A little bit about inline assembler syntax
+
 ```
-The000000000000
-Holy000000000000
-Bible00000000000
-Berean0000000000
-Standard00000000
-Bible00000000000
-BSB0000000000000
-is00000000000000
-produced00000000
-in00000000000000
-cooperation00000
-with000000000000
+__asm__ (
+    "asm code"
+    : output_operands // return value
+    : input_operands  // parameters
+    : clobbers		  // trash registers
+);
+```
+This is a C implementation of our strcmp function
+
+```c
+int strcmp_asm(const char * s1, const char * s2)
+{
+    __m256i ymm_string1 = _mm256_loadu_si256((__m256i*) s1);
+    __m256i ymm_string2 = _mm256_loadu_si256((__m256i*) s2);
+
+    int mask = _mm256_testc_si256(ymm_string1, ymm_string2);
+
+    return mask;
+}
 ```
 
+This is how it looks like in asm
 
+```
+strcmp_asm(char const*, char const*):
+        vmovdqu ymm0, YMMWORD PTR [rdi]
+        xor     eax, eax
+        vptest  ymm0, YMMWORD PTR [rsi]
+        setc    al
+        vzeroupper
+        ret
+```
 
-| Compiler | Flags | Time| Boost (ref to prev version)| Boost (ref to prev fastest version)| FlameGraph |
-|----------|-------|-----|-------|------------|-------|
-| gcc | -O0	|118.6 ms ±   1.8 ms |+11.6%	|-3.5%	|![image](readme/hotspot_simd_gcc_O0.png) |
-| gcc | -O1 |99.2 ms ±   1.4 ms  |+24.1%  	|+15.4%	|![image](readme/hotspot_simd_gcc_O1.png) |
-| gcc | -O2 |99.5 ms ±   2.0 ms  |+15.1% 	|+15.1%	|![image](readme/hotspot_simd_gcc_O2.png) |
-| gcc | -O3 |99.5 ms ±   2.4 ms	 |+25.7% 	|+15.1%	|![image](readme/hotspot_simd_gcc_O3.png) |
+This is how we write it using inline assembler
 
+```c
+static inline int strcmp_asm(const char * el1, const char * el2)
+{
 
-Judging by the flame-graph we see that strcmp disappearead from it.
-Now **nft_pcpu_tun_ctx** is on top. Still guessing what's that but it is something from Linux Kernel.
+    int mask = 0;
+
+    __asm__ __volatile__ (
+    ".intel_syntax noprefix             \n\t"
+    "vmovdqu ymm0, [%1]                \n\t"
+    "xor eax, eax                       \n\t"
+    "vptest ymm0,  [%2]                \n\t"
+    "setc %b0                            \n\t"
+    "vzeroupper                         \n\t"
+    ".att_syntax prefix                 \n\t"
+
+    :"+&r" (mask)
+    :"r" (el1), "r" (el2)
+    : "ymm0"
+
+    );
+
+    return mask;
+
+}
+```
+
+![alt text](readme/image.png)
+
+| Previous time | Current time |Boost|
+|------|-----|------|
+ 163.0 ms ±  1.3 ms | 145.7 ms ± 1.8 ms | 12.4% |
+
+### Second enemy - hash function
 

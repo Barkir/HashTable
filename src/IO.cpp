@@ -61,7 +61,7 @@ int File2Lines(int a_flag, char *** buf, const char * filename)
     {
         if (a_flag == IO_ALIGNED)
         {
-            if (strlen(line) == 16)
+            if (strlen(line) == BUF_LEN)
             {
                 *((*buf) + count) = strdup(line);
                 count++;

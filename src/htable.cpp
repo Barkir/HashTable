@@ -1,25 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include <xmmintrin.h>
 #include <x86intrin.h>
 #include <nmmintrin.h>
+#include <immintrin.h>
+#include <wmmintrin.h>
 
 #include "list.h"
 #include "htable.h"
 #include "errors.h"
 #include "IO.h"
+#include "crc32.h"
 
-int HtableInit(Htable ** tab, size_t bins, HashFunc hfunc, InsertFunc ifunc)
+int HtableInit(Htable ** tab, size_t bins)
 {
     *tab = (Htable*) calloc(1, sizeof(Htable));
     if (!tab) return ParseHtableError(HTABLE_MEMALLOC_ERROR);
 
     (*tab)->bins = bins;
-    (*tab)->hfunc = hfunc;
-    (*tab)->ifunc = ifunc;
-
 
     (*tab)->table = (List**) calloc(bins, sizeof(List*));
     if (!(*tab)->table) return ParseHtableError(HTABLE_MEMALLOC_ERROR);
@@ -49,15 +50,20 @@ int HtableDestroy(Htable * tab)
 
 int HtableInsert(Htable * tab, const char * string)
 {
-    // LOGGER("%s", string);
-    size_t ind = tab->hfunc(string, strlen(string)) % tab->bins;
+    size_t ind = xcrc32(string, strlen(string), CRC32INIT) % tab->bins;
     for (List * lst = tab->table[ind]; lst; lst=lst->nxt)
     {
 
     }
 
-    List * n = (List*) malloc(sizeof(List));
-    n->elem = strdup(string);
+    List * n = (List*) calloc(1, sizeof(List));
+    if (!n) return HTABLE_MEMALLOC_ERROR;
+
+    n->elem = (char*) calloc(BUF_LEN, BUF_LEN);
+    if (!n->elem) return HTABLE_MEMALLOC_ERROR;
+
+    memcpy(n->elem, string, strlen(string) + 1);
+
     n->nxt = tab->table[ind];
     tab->table[ind] = n;
 
@@ -65,69 +71,57 @@ int HtableInsert(Htable * tab, const char * string)
     return HTABLE_SUCCESS;
 }
 
-int HtableAlignedInsert(int alignment, Htable * tab, const char * string)
+int HtableOptInsert(Htable * tab, const char * string)
 {
-    // LOGGER("%s, %d", string, strlen(string));
-    size_t ind = tab->hfunc(string, alignment) % tab->bins;
-    for (List * lst = tab->table[ind]; lst; lst=lst->nxt)
+    int bin = xcrc32(string, strlen(string), CRC32INIT) % tab->bins;
+    for (List * lst = tab->table[bin]; lst; lst=lst->nxt)
     {
 
     }
 
-    List * n = (List*) malloc(sizeof(List));
-    n->elem16 = _mm_load_si128((__m128i*) string);
-    n->elem = strdup(string);
-    n->nxt = tab->table[ind];
-    tab->table[ind] = n;
+    List * n = (List*) calloc(1, sizeof(List));
+    if (!n) return HTABLE_MEMALLOC_ERROR;
 
+    n->elem = (char*) aligned_alloc(BUF_LEN, BUF_LEN);
+    if (!n->elem) return HTABLE_MEMALLOC_ERROR;
+
+    memset(n->elem, 0, BUF_LEN);
+    memcpy(n->elem, string, strlen(string) + 1);
+
+    n->nxt = tab->table[bin];
+    tab->table[bin] = n;
 
     return HTABLE_SUCCESS;
 }
 
 int HtableFind(Htable * tab, const char * string, char * result)
 {
-    int bin = tab->hfunc(string, strlen(string)) % tab->bins;
-    // int bin = tab->hfunc(string, 16) % tab->bins;
+    int bin = xcrc32(string, strlen(string), CRC32INIT) % tab->bins;
 
     for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
+    {
         if (!strcmp(string, lst->elem)) return HTABLE_FOUND;
+    }
 
     return HTABLE_NOT_FOUND;
 }
 
-int HtableAlignedFind(int alignment, Htable * tab, const char * string, char * result)
+int HtableOptFind(Htable * tab, const char * string, char * result)
 {
-    __m128i barelystr = _mm_load_si128((__m128i*) string);
+    int bin = xcrc32(string, strlen(string), CRC32INIT) % tab->bins;
 
-    int bin = tab->hfunc(string, alignment) % tab->bins;
     for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
     {
-        __m128i cmpres = _mm_cmpeq_epi8(barelystr, lst->elem16);
-        int mask = _mm_movemask_epi8(cmpres);
-        // LOGGER("%s vs %s %d", string, lst->elem, mask);
-        if (mask==0xFFFF) return HTABLE_FOUND;
+        if (strcmp_asm(string, lst->elem))
+        {
+            LOGGER("FOUND WORD %s, bin = %d", string, bin);
+            return HTABLE_FOUND;
+        }
     }
+
+    LOGGER("NOT FOUND WORD %s, bin = %d", string, bin);
+
     return HTABLE_NOT_FOUND;
-}
-
-int64_t ListInsertStud(void * lst, const void * elem)
-{
-    if (!ListInsert((List*) lst, (const char*) elem))
-        return ParseListError(LST_INSERT_ERROR);
-
-    return LST_SUCCESS;
-}
-
-int64_t HashFunction(const void * elem, size_t size)
-{
-    int64_t hash = 5381;
-    const char * str = (const char *) elem;
-    for (int i = 0; i < size; i++)
-    {
-        hash = ((hash << 5) + hash) + str[i];
-    }
-
-    return hash;
 }
 
 int HtableDump(Htable * tab)
@@ -143,7 +137,7 @@ int HtableDump(Htable * tab)
         fprintf(file, "[BIN %d]", bins);
         fprintf(file, "----------------------------------\n");
         for (List * lst = tab->table[bins]; lst; lst=lst->nxt)
-        // if (lst->elem) fprintf(file, "\t %s", lst->elem);
+        if (lst->elem) fprintf(file, "\t %s", lst->elem);
         fprintf(file, "----------------------------------\n");
     }
 

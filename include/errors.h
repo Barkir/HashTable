@@ -1,11 +1,17 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
+// #define DEBUG
+
+#ifdef DEBUG
 #define LOGGER(...) \
     fprintf(stdout, "(%s, %s) %d: ", __FILE__, __func__, __LINE__);     \
     fprintf(stdout, __VA_ARGS__);                                       \
     fprintf(stdout, "\n")
-
+#endif
+#ifndef DEBUG
+#define LOGGER(...)
+#endif
 
 enum HtableError
 {
