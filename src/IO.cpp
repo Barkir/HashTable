@@ -75,7 +75,9 @@ int File2Lines(int a_flag, char *** buf, const char * filename)
         }
         else
         {
-            *((*buf) + count) = strdup(line);
+            *((*buf) + count) = (char*) calloc(BUF_LEN, 1);
+            memcpy(*((*buf) + count), line, strlen(line) + 1);
+            // strdup(line);
             count++;
         }
 

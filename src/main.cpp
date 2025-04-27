@@ -33,7 +33,6 @@ int SIMDVersion(void)
     File2Lines(IO_DEFAULT, &harry, "info/parsed.harry");
     File2Lines(IO_DEFAULT, &bible, "info/parsed.bible");
 
-
     for (int i = 0; i < NUM_WORDS; i++)
     {
         // LOGGER("%s", harry[i]);

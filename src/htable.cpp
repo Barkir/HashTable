@@ -73,6 +73,9 @@ int HtableInsert(Htable * tab, const char * string)
 
 int HtableOptInsert(Htable * tab, const char * string)
 {
+    if (!tab) return HTABLE_NULLPTR;
+    if (!string) return HTABLE_NULLPTR;
+
     int bin = icrc32(string) % tab->bins;
     for (List * lst = tab->table[bin]; lst; lst=lst->nxt)
     {
@@ -82,10 +85,9 @@ int HtableOptInsert(Htable * tab, const char * string)
     List * n = (List*) calloc(1, sizeof(List));
     if (!n) return HTABLE_MEMALLOC_ERROR;
 
-    n->elem = (char*) aligned_alloc(BUF_LEN, BUF_LEN);
+    n->elem = (char*) calloc(BUF_LEN, 1);
     if (!n->elem) return HTABLE_MEMALLOC_ERROR;
 
-    memset(n->elem, 0, BUF_LEN + 1);
     memcpy(n->elem, string, strlen(string) + 1);
 
     n->nxt = tab->table[bin];
@@ -106,23 +108,23 @@ int HtableFind(Htable * tab, const char * string, char * result)
     return HTABLE_NOT_FOUND;
 }
 
-int HtableOptFind(Htable * tab, const char * string, char * result)
-{
-    int bin = icrc32(string) % tab->bins;
-    for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
-    {
-        // LOGGER("%ld, %ld", (size_t) string % 32, (size_t) lst->elem % 32);
-        if (strcmp_asm(string, lst->elem))
-        {
-            // LOGGER("FOUND WORD %s, bin = %d", string, bin);
-            return HTABLE_FOUND;
-        }
-    }
-
-    // LOGGER("NOT FOUND WORD %s, bin = %d", string, bin);
-
-    return HTABLE_NOT_FOUND;
-}
+// int HtableOptFind(Htable * tab, const char * string, char * result)
+// {
+//     int bin = icrc32(string) % tab->bins;
+//     for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
+//     {
+//         // LOGGER("%ld, %ld", (size_t) string % 32, (size_t) lst->elem % 32);
+//         if (strcmp_asm(string, lst->elem))
+//         {
+//             // LOGGER("FOUND WORD %s, bin = %d", string, bin);
+//             return HTABLE_FOUND;
+//         }
+//     }
+//
+//     // LOGGER("NOT FOUND WORD %s, bin = %d", string, bin);
+//
+//     return HTABLE_NOT_FOUND;
+// }
 
 int HtableDump(Htable * tab)
 {

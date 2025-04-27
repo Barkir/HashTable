@@ -21,7 +21,8 @@ int HtableInit(Htable ** tab, size_t bins);
 int HtableInsert(Htable * tab, const char * string);
 int HtableFind(Htable * tab, const char * string, char * result);
 
-int HtableOptFind(Htable * tab, const char * string, char * result);
+// int HtableOptFind(Htable * tab, const char * string, char * result);
+extern "C" int HtableOptFind(Htable * tab, const char * string, char * result);
 int HtableOptInsert(Htable * tab, const char * string);
 
 int HtableDestroy(Htable * tab);

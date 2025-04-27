@@ -271,6 +271,59 @@ uint32_t icrc32(const char* string)
 |------|-----|------|
  145.7 ms ±  1.3 ms | 132.3 ms ± 1.8 ms | 10.1% |
 
-![alt text](readme/second.png)
+![alt text](image.png)
 
-Now we see that strcmp is the hottest function again
+Now the hottest function is HtableOptFind.
+
+Let's compile this function in godbolt and see other bottlenecks.
+
+```
+HtableOptFind(Htable*, char const*, char*):
+        xor     eax, eax
+        xor     edx, edx
+
+        crc32   rax, QWORD PTR [rsi]        ;
+        crc32   rax, QWORD PTR [rsi+8]      ;   CRC32 PART
+        crc32   rax, QWORD PTR [rsi+16]     ;
+        crc32   rax, QWORD PTR [rsi+24]     ;
+
+        div     QWORD PTR [rdi]
+        mov     rax, QWORD PTR [rdi+16]
+        movsx   rdx, edx
+        mov     rax, QWORD PTR [rax+rdx*8]
+        test    rax, rax
+        je      .L6
+        xor     edi, edi
+        jmp     .L5
+.L9:
+        mov     rax, QWORD PTR [rax+32]
+        test    rax, rax
+        je      .L6
+.L5:
+        mov     rcx, QWORD PTR [rax]
+        mov     edx, edi
+        xor eax, eax
+        vmovdqu ymm0, YMMWORD PTR [rsi]
+        vptest ymm0,  YMMWORD PTR [rcx]
+        setc dl
+        vzeroupper
+
+        test    edx, edx
+        je      .L9
+        xor     eax, eax
+        ret
+.L6:
+        mov     eax, -1
+        ret
+```
+
+First line to change is this line ```div QWORD PTR [rdi]```
+
+We have 128 bins but compiler doesnt't know anything about it.
+So let's change this instruction to
+
+```
+and eax, 127
+mov rax, QWORD PTR [rdx+rax*8]
+test rax, rax
+```
