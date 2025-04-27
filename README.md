@@ -49,19 +49,18 @@ Keeping load factor as low as possible reduces **linear search** in bins, that's
 load_factor = sum([len(list) for list in hash_table]) / bins
 ```
 #### Hash-function
-- Using djb2 hash function (fast & easy to write)
+- Using crc2 hash function
 - In the next iterations we will optimize this spot and use SIMD hash functions
 ```c
-int64_t HashFunction(const void * elem, size_t size)
+unsigned int xcrc32 (const char *buf, int len, unsigned int init)
 {
-    int64_t hash = 5381;
-    const char * str = (const char *) elem;
-    for (int i = 0; i < size; i++)
+  unsigned int crc = init;
+  while (len--)
     {
-        hash = ((hash << 5) + hash) + str[i];
+      crc = (crc << 8) ^ crc32_table[((crc >> 24) ^ *buf) & 255];
+      buf++;
     }
-
-    return hash;
+  return crc;
 }
 ```
 
