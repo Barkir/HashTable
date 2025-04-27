@@ -271,11 +271,11 @@ uint32_t icrc32(const char* string)
 |------|-----|------|
  145.7 ms ±  1.3 ms | 132.3 ms ± 1.8 ms | 10.1% |
 
-![alt text](image.png)
+![alt text](readme/second_end.png)
 
 Now the hottest function is HtableOptFind.
 
-Let's compile this function in godbolt and see other bottlenecks.
+Let's compile this function in [godbolt](https://godbolt.org/z/bf7WG1ebG) and see other bottlenecks.
 
 ```
 HtableOptFind(Htable*, char const*, char*):
@@ -327,3 +327,47 @@ and eax, 127
 mov rax, QWORD PTR [rdx+rax*8]
 test rax, rax
 ```
+
+We also change the main cycle of our program. We don't need to execute ```vzeroupper``` every time because we don't change AVX registers to SSE in our program. That's why let's call it only once before ```ret```.
+
+Then we write it in a separate [file](src/tablefind.asm) and link it with other .o files.
+
+![alt text](readme/third.png)
+
+Now nft_pcpu_tun_ctx is on top. Still guessing what's that but it is something from Linux Kernel. Although let's see the final results of our optimization.
+
+| Previous time | Current time |Boost|
+|------|-----|------|
+ 132.3 ms ±  1.8 ms | 118.03 ms ± 2.0 ms | 10.8% |
+
+
+ ## FINALS RESULTS
+
+ | Iteration | Time | Relative boost | Absolute boost |
+|------|-----|------|-----|
+ 0|163.0 ms ±  1.3 ms|  0.0%  | 0.0 %
+ 1|145.7 ms ± 1.8 ms | 12.4% | 12.4%
+ 2|132.3 ms ± 1.8 ms | 10.1% | 23.2%
+ 3|118.03 ms ± 2.0 ms | 10.8% | 38.1%
+
+ We see that combination of three different optimizations boosted our performance up to **38 %**.
+
+ This is an educational example of research so we can stop on these iteration. But in other cases we would continue optimizing our program, because 10% is still a big relevant boost.
+
+ ### Other optimizations
+
+Let's decrease a load factor to 2.
+
+| Previous time | Current time |Boost|
+|------|-----|------|
+ 118.03 ms ±  2.0 ms | 92.5 ms ± 1.5 ms | 27.6% |
+
+![sui](readme/sui.gif)
+
+This way we decrease a linear search in our table which basically reduces the number of address tranistions. That's why it works even faster.
+
+# FINAL SPEECH
+
+This task is aimed at forming an understanding about optimizing the code for a specific case. This is how we learn to understand how a particular algorithm will work, not in an ideal case, but on a specific hardware.
+
+Based on the results, it can be seen that the contribution of algorithmic optimizations and optimizations at the instruction level is comparable, which means that for the effective operation of the program you need to be able to use both approaches.

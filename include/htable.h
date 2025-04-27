@@ -6,7 +6,7 @@
 #include <nmmintrin.h>
 #include <immintrin.h>
 
-const int64_t HTABLE_BINS = 128;
+const int64_t HTABLE_BINS = 1024;
 
 struct Htable
 {
