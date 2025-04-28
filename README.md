@@ -9,10 +9,10 @@
 
 ## What we need to do?
 1. Write your own implementation of hash table
-2. Analyze it's speed using ```perf, valgrind, hotspot```
+2. Analyze its speed using ```perf, valgrind, hotspot```
 3. Find the __hottest__ functions
-4. Optimize them using SIMD instructions and assembler
-5. Count the boost
+4. Optimize them using intrinsic-functions and assembler
+5. Calculate the boost
 6. EAT, SLEEP, REPEAT
 
 ## What is a hash table?
@@ -43,7 +43,7 @@ Your data should be kept smoothly to keep an optimal [load factor](#load-factor)
 
 Keeping load factor as low as possible reduces **linear search** in bins, that's why it makes hash tables work faster
 
-#### Load-factor
+#### Load factor
 
 ```python
 load_factor = sum([len(list) for list in hash_table]) / bins
@@ -331,6 +331,63 @@ We also change the main cycle of our program. We don't need to execute ```vzerou
 
 Then we write it in a separate [file](src/tablefind.asm) and link it with other .o files.
 
+That's the full code example.
+
+```asm
+section .text
+
+global HtableOptFind
+
+HtableOptFind:
+    xor eax, eax
+
+    ;-----------------------------
+    ; CRC32 FIELD                |
+    ;-----------------------------
+
+    mov     rdx,    qword [rdi+16]
+    crc32   rax,    qword [rsi]
+    crc32   rax,    qword [rsi+8]
+    crc32   rax,    qword [rsi+16]
+    crc32   rax,    qword [rsi+24]
+
+    ;----------------------------|
+
+    and     eax,    1023                ;
+    mov     rax,    qword [rdx+rax*8]   ; int bin = icrc32(string) % 128
+    test    rax,    rax                 ;
+    je      .FinishProg
+    xor     edi,    edi
+    jmp     .HtableCycle
+
+.HtableStopCycle:
+    mov rax, qword [rax+32]
+    test rax, rax
+    je .FinishProg
+
+.HtableCycle:                           ; for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
+    mov rcx, qword [rax]
+    mov edx, edi
+
+    vmovdqu ymm0, yword [rsi]           ; Moving string to YMM
+    vptest  ymm0, yword [rcx]           ; ~(s1 & s2)
+    setc    dl                          ;  Set dl if CF == 1 (s1 equals s2)
+
+    test edx, edx
+    je .HtableStopCycle
+    mov eax, 6                          ; return HTABLE_FOUND;
+
+    vzeroupper
+    ret
+
+.FinishProg:
+    mov eax, 7                          ; return HTABLE_NOT_FOUND;
+    ret
+
+```
+
+
+
 ![alt text](readme/third.png)
 
 Now nft_pcpu_tun_ctx is on top. Still guessing what's that but it is something from Linux Kernel. Although let's see the final results of our optimization.
@@ -364,6 +421,10 @@ Let's decrease a load factor to 2.
 ![sui](readme/sui.gif)
 
 This way we decrease a linear search in our table which basically reduces the number of address tranistions. That's why it works even faster.
+
+### REMARK
+
+Of course this optimization breaks all our previous work because now we have different *flame graph*. So, if that would be a real research work, we would at first do algorithmic optimizations which don't include **assembly** code or use of intrinsics. But in our studying case we used large load-factor to increase the influence of functions with linear search and find different ways of optimizing it without algorithmic approaches
 
 # FINAL SPEECH
 
