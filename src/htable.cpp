@@ -50,7 +50,7 @@ int HtableDestroy(Htable * tab)
 
 int HtableInsert(Htable * tab, const char * string)
 {
-    size_t ind = xcrc32(string, strlen(string), CRC32INIT) % tab->bins;
+    size_t ind = crc32_naive(string, strlen(string), CRC32INIT) % tab->bins;
     for (List * lst = tab->table[ind]; lst; lst=lst->nxt)
     {
 
@@ -76,7 +76,7 @@ int HtableOptInsert(Htable * tab, const char * string)
     if (!tab) return HTABLE_NULLPTR;
     if (!string) return HTABLE_NULLPTR;
 
-    int bin = icrc32(string) % tab->bins;
+    int bin = crc32_intinsic(string) % tab->bins;
     for (List * lst = tab->table[bin]; lst; lst=lst->nxt)
     {
 
@@ -98,7 +98,7 @@ int HtableOptInsert(Htable * tab, const char * string)
 
 int HtableFind(Htable * tab, const char * string, char * result)
 {
-    int bin = xcrc32(string, strlen(string), CRC32INIT) % tab->bins;
+    int bin = crc32_naive(string, strlen(string), CRC32INIT) % tab->bins;
 
     for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
     {
@@ -110,7 +110,7 @@ int HtableFind(Htable * tab, const char * string, char * result)
 
 // int HtableOptFind(Htable * tab, const char * string, char * result)
 // {
-//     int bin = icrc32(string) % tab->bins;
+//     int bin = crc32_intinsic(string) % tab->bins;
 //     for (List * lst = tab->table[bin]; lst; lst = lst->nxt)
 //     {
 //         // LOGGER("%ld, %ld", (size_t) string % 32, (size_t) lst->elem % 32);

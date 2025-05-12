@@ -3,7 +3,7 @@
 
 const unsigned int CRC32INIT = 5381;
 
-unsigned int xcrc32 (const char *buf, int len, unsigned int init);
-unsigned int icrc32(const char* string);
+unsigned int crc32_naive (const char *buf, int len, unsigned int init);
+unsigned int crc32_intinsic(const char* string);
 
 #endif

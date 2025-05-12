@@ -72,7 +72,7 @@ static const unsigned int crc32_table[] =
   0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
 };
 
-uint32_t icrc32(const char* string)
+uint32_t crc32_intinsic(const char* string)
 {
     uint32_t crc = 0;
     crc = _mm_crc32_u64(crc, *((uint64_t*)string +  0));
@@ -83,7 +83,7 @@ uint32_t icrc32(const char* string)
     return crc;
 }
 
-unsigned int xcrc32 (const char *buf, int len, unsigned int init)
+unsigned int crc32_naive (const char *buf, int len, unsigned int init)
 {
   unsigned int crc = init;
   while (len--)

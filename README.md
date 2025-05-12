@@ -21,23 +21,30 @@
 - It works faster than any other storing structure (tree, list etc.)
 
 ### Main idea
-```
-you have these bins where you put your data
-to put in a bin you count hash of your data
 
-# this is how you get the number of bin
----------------------
-index = hash % bins |
----------------------
+There are several ways to write a hash table. We will use chain-addressing in our hash table.
+The bins where we put our info are lists forming linear sequences of words.
+The search function in this implementation consists of **counting hash** and **linear search**
 
-0       1       2       3
-|       |       |       |
-[]      []      []      []
-[]      []      []      []
-[]      []      []      []
-```
+![alt text](readme/chain_addressing.png)
 
-### Better hash == Random hash.
+---
+##### ЗЫ (other hash-table implementations)
+| Implementation name | Idea |
+|---------------------|------|
+| Double hashing      | Replace __list__ with mini hash table (so it's hash-table matryoshka). |
+| Open Addressing     | Hash table is a linear sequence of arrays. No pointers to lists.       |
+| [Robin Hood](https://www.youtube.com/watch?v=Q4dDoJ4JZ4I)          | Based on swapping PSL (probe sequence length) when we hit the bottom of the bucket |
+
+
+---
+
+
+### Better hash == Homogeneous hash.
+We should choose hash-functions which give us the most homogeneous info distribution.
+Remember: **COLLISIONS ARE BAD**. They decrease the efficiency of your hash table _search function_.
+
+
 Your data should be kept smoothly to keep an optimal [load factor](#load-factor) of 1.5 but we are going to keep it **15** for better optimization.
 
 
@@ -109,21 +116,15 @@ Load factor = 15.625000
 ----------------------------------
 	 did
 	 hed
-	 hed
-	 Potters
-	 hed
 	 upset
-	 upset
-	 hed
-	 upset
+	 hear
 	 Potters
-	 hed
-	 did
+	 bear
+	 Mugglers
 	 Potters
-	 Potters
-	 Potters
-	 Potters
-	 did
+	 Potter
+	 stop
+	 do
 ----------------------------------
 ...
 ```
