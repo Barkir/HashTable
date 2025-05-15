@@ -22,8 +22,12 @@ int HtableInit(Htable ** tab, size_t bins)
 
     (*tab)->bins = bins;
 
-    (*tab)->table = (List**) calloc(BUF_LEN, bins * sizeof(List*));
+
+    (*tab)->table = (List**) calloc(bins, sizeof(List*));
     if (!(*tab)->table) return ParseHtableError(HTABLE_MEMALLOC_ERROR);
+
+    (*tab)->bloom = (char*) calloc(bins, 1);
+    if (!(*tab)->bloom) return ParseHtableError(HTABLE_MEMALLOC_ERROR);
 
 
     return HTABLE_SUCCESS;
@@ -76,10 +80,23 @@ int HtableOptInsert(Htable * tab, const char * string)
     if (!tab) return HTABLE_NULLPTR;
     if (!string) return HTABLE_NULLPTR;
 
-    int bin = crc32_intinsic(string) % tab->bins;
+    int hash = crc32_intinsic(string);
+
+// Bloom filter implementation
+// ----------------------------
+    unsigned char * bytes =  (unsigned char*) &hash;
+    tab->bloom[bytes[0]] = 1;       //LOGGER("%d", bytes[0]);
+    tab->bloom[bytes[1]] = 1;       //LOGGER("%d", bytes[1]);
+    tab->bloom[bytes[2]] = 1;       //LOGGER("%d", bytes[2]);
+    tab->bloom[bytes[3]] = 1;       //LOGGER("%d", bytes[3]);
+// ----------------------------
+
+    int bin = hash % tab->bins;
+
     for (List * lst = tab->table[bin]; lst; lst=lst->nxt)
     {
-
+        if (strcmp_asm(lst->elem, string))
+            return HTABLE_SUCCESS;
     }
 
     List * n = (List*) calloc(1, sizeof(List));

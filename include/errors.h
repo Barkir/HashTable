@@ -1,7 +1,7 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #define LOGGER(...) \
@@ -15,16 +15,16 @@
 
 enum HtableError
 {
-    HTABLE_SUCCESS,
-    HTABLE_MEMALLOC_ERROR,
-    HTABLE_FILE_OPEN_ERROR,
-    HTABLE_INSERT_ERROR,
-    HTABLE_INIT_ERROR,
-    HTABLE_UNKNOWN_ERROR,
-    HTABLE_NULLPTR,
+    HTABLE_SUCCESS              = 0,
+    HTABLE_MEMALLOC_ERROR       = 1,
+    HTABLE_FILE_OPEN_ERROR      = 2,
+    HTABLE_INSERT_ERROR         = 3,
+    HTABLE_INIT_ERROR           = 4,
+    HTABLE_UNKNOWN_ERROR        = 5,
+    HTABLE_NULLPTR              = 6,
 
-    HTABLE_FOUND,
-    HTABLE_NOT_FOUND
+    HTABLE_FOUND                = 7,
+    HTABLE_NOT_FOUND            = 8
 };
 
 enum ListError

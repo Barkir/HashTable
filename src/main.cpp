@@ -46,11 +46,11 @@ int SIMDVersion(void)
     {
         if (HtableOptFind(tab, bible[i], found) == HTABLE_FOUND)
         {
-            // LOGGER("FOUND WORD %s", bible[i]);
+            LOGGER("FOUND WORD %s", bible[i]);
         }
         else
         {
-            // LOGGER("NOT FOUND WORD %s", bible[i]);
+            LOGGER("NOT FOUND WORD %s", bible[i]);
         }
     }
     // }

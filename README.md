@@ -410,7 +410,7 @@ Now nft_pcpu_tun_ctx is on top. Still guessing what's that but it is something f
 
  This is an educational example of research so we can stop on these iteration. But in other cases we would continue optimizing our program, because 10% is still a big relevant boost.
 
- ### Other optimizations
+ ### Decreasing load factor
 
 Let's decrease a load factor to 2.
 
@@ -421,6 +421,48 @@ Let's decrease a load factor to 2.
 ![sui](readme/sui.gif)
 
 This way we decrease a linear search in our table which basically reduces the number of address tranistions. That's why it works even faster.
+
+### Bloom FIlters
+
+Bloom filter is an array of zeros and ones whicb helps you to boost up your perfomance.
+When we insert an an element we get it's hash value.
+In my case it is integer.
+
+Then we get values of single bytes in it and set elements in bloom filter array to 1 using the byte value as the index to bloom filter array.
+
+Then when we start searching a word we check the bytes of it's hash and if they're all set to 1 we don't need to search it in bins because bloom filter says us it is already there!
+
+```
+    ;----------------------------|
+    ; BloomFilter Field          |
+    ; ---------------------------|
+                                ;|
+    movzx edi, al               ;| bloom[0] check
+    cmp byte [rdx+rdi], 0       ;|
+    je .BloomReject             ;|
+    movzx edi, ah               ;| bloom[1] check
+    cmp byte [rdx + rdi], 0     ;|
+    je .BloomReject             ;|
+    mov edi, eax                ;| bloom[2] check
+    shr edi, 16                 ;|
+    movzx edi, dil              ;|
+    cmp byte [rdx + rdi], 0     ;|
+    je .BloomReject             ;|
+    mov rdi, rax                ;| bloom[3] check
+    shr rdi, 24                 ;|
+    cmp byte [rdx + rdi], 0     ;|
+    je .BloomReject             ;|
+                                ;|
+    mov eax, 7                  ;|
+    ret                         ;|
+; -------------------------------|
+```
+
+| Previous time | Current time |Boost|
+|------|-----|------|
+ 118.03 ms ±  2.0 ms | 111.6 ms ± 3.4 ms | 5.4% |
+
+ It has boosted up our perfomance by 5%. Though it is recommended to be used in larger hash tables we still see the consequences!
 
 ### REMARK
 

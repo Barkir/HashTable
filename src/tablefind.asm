@@ -4,6 +4,7 @@ global HtableOptFind
 
 HtableOptFind:
     xor eax, eax
+    xor edx, edx
 
     ;-----------------------------
     ; CRC32 FIELD                |
@@ -17,7 +18,33 @@ HtableOptFind:
 
     ;----------------------------|
 
-    and     eax,    1023                ;
+    ;----------------------------|
+    ; BloomFilter Field          |
+    ; ---------------------------|
+                                ;|
+    movzx edi, al               ;| bloom[0] check
+    cmp byte [rdx+rdi], 0       ;|
+    je .BloomReject             ;|
+    movzx edi, ah               ;| bloom[1] check
+    cmp byte [rdx + rdi], 0     ;|
+    je .BloomReject             ;|
+    mov edi, eax                ;| bloom[2] check
+    shr edi, 16                 ;|
+    movzx edi, dil              ;|
+    cmp byte [rdx + rdi], 0     ;|
+    je .BloomReject             ;|
+    mov rdi, rax                ;| bloom[3] check
+    shr rdi, 24                 ;|
+    cmp byte [rdx + rdi], 0     ;|
+    je .BloomReject             ;|
+                                ;|
+    mov eax, 7                  ;|
+    ret                         ;|
+; -------------------------------|
+
+.BloomReject:
+
+    and     eax,    127                 ;
     mov     rax,    qword [rdx+rax*8]   ; int bin = icrc32(string) % 128
     test    rax,    rax                 ;
     je      .FinishProg
@@ -39,11 +66,11 @@ HtableOptFind:
 
     test edx, edx
     je .HtableStopCycle
-    mov eax, 6                          ; return HTABLE_FOUND;
+    mov eax, 7                          ; return HTABLE_FOUND;
 
     vzeroupper
     ret
 
 .FinishProg:
-    mov eax, 7                          ; return HTABLE_NOT_FOUND;
+    mov eax, 8                          ; return HTABLE_NOT_FOUND;
     ret
