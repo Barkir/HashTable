@@ -83,7 +83,7 @@ uint32_t crc32_intinsic(const char* string)
     return crc;
 }
 
-unsigned int crc32_naive (const char *buf, int len, unsigned int init)
+uint32_t crc32_naive (const char *buf, int len, unsigned int init)
 {
   unsigned int crc = init;
   while (len--)

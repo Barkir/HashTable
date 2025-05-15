@@ -237,7 +237,7 @@ static inline int strcmp_asm(const char * el1, const char * el2)
 
 | Previous time | Current time |Boost|
 |------|-----|------|
- 163.0 ms ±  1.3 ms | 145.7 ms ± 1.8 ms | 12.4% |
+ 163.0 ms ±  1.3 ms | 145.7 ms ± 1.8 ms | 12.4%  (1.124)x|
 
 ### Second enemy - hash function
 
@@ -268,7 +268,7 @@ uint32_t icrc32(const char* string)
 
 | Previous time | Current time |Boost|
 |------|-----|------|
- 145.7 ms ±  1.3 ms | 132.3 ms ± 1.8 ms | 10.1% |
+ 145.7 ms ±  1.3 ms | 132.3 ms ± 1.8 ms | 10.1% (1.101x) |
 
 ![alt text](readme/second_end.png)
 
@@ -394,7 +394,7 @@ Now nft_pcpu_tun_ctx is on top. Still guessing what's that but it is something f
 
 | Previous time | Current time |Boost|
 |------|-----|------|
- 132.3 ms ±  1.8 ms | 118.03 ms ± 2.0 ms | 10.8% |
+ 132.3 ms ±  1.8 ms | 118.03 ms ± 2.0 ms | 10.8% (1.108x)|
 
 
  ## FINALS RESULTS
@@ -406,7 +406,7 @@ Now nft_pcpu_tun_ctx is on top. Still guessing what's that but it is something f
  2|132.3 ms ± 1.8 ms | 10.1% | 23.2%
  3|118.03 ms ± 2.0 ms | 10.8% | 38.1%
 
- We see that combination of three different optimizations boosted our performance up to **38 %**.
+ We see that combination of three different optimizations boosted our performance up to **38 % (1.38x)** .
 
  This is an educational example of research so we can stop on these iteration. But in other cases we would continue optimizing our program, because 10% is still a big relevant boost.
 
@@ -416,7 +416,7 @@ Let's decrease a load factor to 2.
 
 | Previous time | Current time |Boost|
 |------|-----|------|
- 118.03 ms ±  2.0 ms | 92.5 ms ± 1.5 ms | 27.6% |
+ 118.03 ms ±  2.0 ms | 92.5 ms ± 1.5 ms | 27.6% (1.28x)|
 
 ![sui](readme/sui.gif)
 
@@ -460,7 +460,7 @@ Then when we start searching a word we check the bytes of it's hash and if they'
 
 | Previous time | Current time |Boost|
 |------|-----|------|
- 118.03 ms ±  2.0 ms | 111.6 ms ± 3.4 ms | 5.4% |
+ 118.03 ms ±  2.0 ms | 111.6 ms ± 3.4 ms | 5.4% (1.054x)|
 
  It has boosted up our perfomance by 5%. Though it is recommended to be used in larger hash tables we still see the consequences!
 
