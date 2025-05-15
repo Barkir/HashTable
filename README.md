@@ -1,13 +1,6 @@
 # Hash Table Research
 
-  | OS | Hardware |
-  |------|------|
-  | Ubuntu 24.10 | AMD Ryzen 7 6800H with Radeon Graphics            3.20 GHz |
-  | DESKTOP-JTSUO0I       | 16 GB RAM                                                  |
-  | Ubuntu clang version 19.1.1 (1ubuntu1) |
-  | gcc (Ubuntu 14.2.0-4ubuntu2) 14.2.0    |
-
-## What we need to do?
+## Main goals
 1. Write your own implementation of hash table
 2. Analyze its speed using ```perf, valgrind, hotspot```
 3. Find the __hottest__ functions
@@ -15,10 +8,21 @@
 5. Calculate the boost
 6. EAT, SLEEP, REPEAT
 
+
 ## What is a hash table?
 - Hash table is a structure for storing your data
 - It is easy and fast to write
 - It works faster than any other storing structure (tree, list etc.)
+
+##### Hash table implementations
+| Implementation name | Idea |
+|---------------------|------|
+| Double hashing      | Replace __list__ with mini hash table (so it's hash-table matryoshka). |
+| Open Addressing     | Hash table is a linear sequence of arrays. No pointers to lists.       |
+| [Robin Hood](https://www.youtube.com/watch?v=Q4dDoJ4JZ4I)          | Based on swapping PSL (probe sequence length) when we hit the bottom of the bucket |
+| Chain Addressing | The buckets of hash-table are pointers to __lists__
+
+In our project we will use chain-addressing implementation.
 
 ### Main idea
 
@@ -27,20 +31,15 @@ The bins where we put our info are lists forming linear sequences of words.
 The search function in this implementation consists of **counting hash** and **linear search**
 
 ![alt text](readme/chain_addressing.png)
-
----
-##### ЗЫ (other hash-table implementations)
-| Implementation name | Idea |
-|---------------------|------|
-| Double hashing      | Replace __list__ with mini hash table (so it's hash-table matryoshka). |
-| Open Addressing     | Hash table is a linear sequence of arrays. No pointers to lists.       |
-| [Robin Hood](https://www.youtube.com/watch?v=Q4dDoJ4JZ4I)          | Based on swapping PSL (probe sequence length) when we hit the bottom of the bucket |
+[original](https://en.wikipedia.org/wiki/Open_addressing#/media/File:HASHTB12.svg)
 
 
 ---
 
+### Collisions
+We call this a __collision__ when two different elements have equal hash-function return values. Collisions affect badly on our performance.
 
-### Better hash == Homogeneous hash.
+### Better hash == Homogeneous hash
 We should choose hash-functions which give us the most homogeneous info distribution.
 Remember: **COLLISIONS ARE BAD**. They decrease the efficiency of your hash table _search function_.
 
@@ -432,3 +431,23 @@ Of course this optimization breaks all our previous work because now we have dif
 This task is aimed at forming an understanding about optimizing the code for a specific case. This is how we learn to understand how a particular algorithm will work, not in an ideal case, but on a specific hardware.
 
 Based on the results, it can be seen that the contribution of algorithmic optimizations and optimizations at the instruction level is comparable, which means that for the effective operation of the program you need to be able to use both approaches.
+
+
+## PC Specifications
+  | OS | Hardware |
+  |------|------|
+  | Ubuntu 24.10 | AMD Ryzen 7 6800H with Radeon Graphics            3.20 GHz |
+  | DESKTOP-JTSUO0I       | 16 GB RAM                                                  |
+  | Ubuntu clang version 19.1.1 (1ubuntu1) |
+  | gcc (Ubuntu 14.2.0-4ubuntu2) 14.2.0    |
+
+# References
+
+[godbolt.org](https://godbolt.org/)
+
+[intel intrinsics guide](https://www.laruence.com/sse/)
+
+[bloom filters guide](https://www.youtube.com/watch?v=GT0En1dGntY)
+
+
+
